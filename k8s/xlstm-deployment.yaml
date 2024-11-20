@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xlstm-training
+  labels:
+    app: xlstm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xlstm
+  template:
+    metadata:
+      labels:
+        app: xlstm
+    spec:
+      containers:
+      - name: xlstm
+        image: your-docker-registry/xlstm:latest  # Replace with your actual image
+        imagePullPolicy: Always # or IfNotPresent depending on your needs
+        command: ["/bin/bash", "-c", "scripts/run_experiment.sh experiments/example_config.yaml"]
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/experiments #Path inside container
+
+      volumes:
+      - name: config-volume
+        configMap:
+          name: experiment-config
+--- 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: experiment-config
+data:
+  example_config.yaml: | # Use | to ensure correct YAML formatting
+    experiment_name: example_experiment
+    model_type: sLSTM
+    data_type: formal_language
+    data_params:
+      alphabet_size: 10
+      sequence_length: 20
+      num_sequences: 1000
+    model_params:
+      embedding_dim: 64
+      hidden_dim: 128
+      num_layers: 2
+    training_params:
+      learning_rate: 0.001
+      batch_size: 32
+      num_epochs: 10

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: xlstm-service
+spec:
+  selector:
+    app: xlstm
+  ports:
+  - protocol: TCP
+    port: 8080  # Example port - can be removed if not needed.
+    targetPort: 8080 # Example target port - can be removed if not needed
+  type: LoadBalancer # Or ClusterIP if internal only
