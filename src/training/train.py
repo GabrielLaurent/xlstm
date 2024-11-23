@@ -1,51 +1,39 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from src.components.dummy_data_loader import DummyDataLoader
-from src.lstm.python.lstm import LSTM  # Or any other LSTM implementation
-from src.training.evaluate import evaluate
+from src.lstm.python.slstm import StackedLSTM
 
 
-def train(model, data_loader, criterion, optimizer, epochs, validation_data_loader):
-    for epoch in range(epochs):
-        model.train()
-        running_loss = 0.0
-        for i, (inputs, labels) in enumerate(data_loader):
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
+def train(config, experiment_manager):
+    # Assuming config is a dictionary containing training parameters
+    num_epochs = config.get('training', {}).get('epochs', 10)
+    learning_rate = config.get('training', {}).get('learning_rate', 0.001)
+    input_size = config['model']['input_size']
+    hidden_size = config['model']['hidden_size']
+    output_size = config['model']['output_size']
+    num_layers = config['model']['num_layers']
 
-            if (i + 1) % 10 == 0:
-                print(f'Epoch [{epoch+1}/{epochs}], Step [{i+1}/{len(data_loader)}], Loss: {running_loss / 10:.4f}')
-                running_loss = 0.0
-        # Evaluate after each epoch
-        val_loss, val_accuracy = evaluate(model, validation_data_loader, criterion)
-        print(f'Epoch [{epoch+1}/{epochs}], Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}')
-
-
-if __name__ == '__main__':
-    # Hyperparameters
-    input_size = 10
-    hidden_size = 20
-    output_size = 5
-    num_layers = 1
-    learning_rate = 0.01
-    epochs = 5
-    batch_size = 32
-
-    # Model
-    model = LSTM(input_size, hidden_size, output_size, num_layers)
-
-    # Data Loader
-    data_loader = DummyDataLoader(input_size, output_size, sequence_length=20, num_sequences=100, batch_size=batch_size)
-    validation_data_loader = DummyDataLoader(input_size, output_size, sequence_length=20, num_sequences=50, batch_size=batch_size)
-
-    # Loss and Optimizer
+    # Dummy data and model initialization (replace with actual data loading)
+    model = StackedLSTM(input_size, hidden_size, output_size, num_layers)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    
+    # Dummy training data
+    input_tensor = torch.randn(10, 1, input_size)  # sequence_length, batch_size, input_size
+    target_tensor = torch.randint(0, output_size, (10,))  # sequence_length
 
-    # Train
-    train(model, data_loader, criterion, optimizer, epochs, validation_data_loader)
+    for epoch in range(num_epochs):
+        optimizer.zero_grad()
+        output = model(input_tensor)
+        loss = criterion(output, target_tensor)
+        loss.backward()
+        optimizer.step()
+
+        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')
+        experiment_manager.log(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')
+        
+        # Save checkpoint every few epochs
+        if (epoch + 1) % 5 == 0:
+            experiment_manager.save_checkpoint(model, epoch + 1)
+            
+    return model

@@ -1,49 +1,41 @@
 import argparse
+import yaml
+import os
+import datetime
 import torch
-import torch.nn as nn
-import torch.optim as optim
 from src.config.config_loader import load_config
-from src.components.dummy_data_loader import DummyDataLoader
-from src.lstm.python.mlstm import mLSTM
-from src.training.train import train_epoch
+from src.training.train import train
 from src.training.evaluate import evaluate
+from experiments.utils.experiment_manager import ExperimentManager
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train mLSTM model')
-    parser.add_argument('--config', type=str, default='experiments/example_config.yaml', help='Path to the config file')
+    parser = argparse.ArgumentParser(description='Run experiments for XLSTM models.')
+    parser.add_argument('--config', type=str, required=True, help='Path to the configuration file.')
+    parser.add_argument('--experiment_name', type=str, default=None, help='Name of the experiment. If none, a timestamped name will be used.')
     args = parser.parse_args()
 
-    # Load configuration
     config = load_config(args.config)
 
-    # Device configuration
-    device = torch.device('cuda' if torch.cuda.is_available() and config['training']['use_cuda'] else 'cpu')
+    if args.experiment_name is None:
+        experiment_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    else:
+        experiment_name = args.experiment_name
 
-    # Dummy Data Loaders
-    train_loader = DummyDataLoader(config['data']['train_size'], config['data']['input_size'], config['data']['sequence_length'])
-    val_loader = DummyDataLoader(config['data']['val_size'], config['data']['input_size'], config['data']['sequence_length'])
+    experiment_manager = ExperimentManager(config, experiment_name)
+    experiment_manager.setup_experiment()
 
-    # Model Initialization
-    input_size = config['data']['input_size']
-    hidden_size = config['model']['hidden_size']
-    num_layers = config['model']['num_layers']
-    output_size = config['data']['input_size']  # Assuming output size is same as input size for simplicity, can be configured
+    # Save config to experiment directory
+    experiment_manager.save_config(args.config)
+    
+    # Training
+    model = train(config, experiment_manager)
 
-    model = mLSTM(input_size, hidden_size, num_layers).to(device)
+    # Evaluation
+    evaluate(model, config, experiment_manager)
 
-    # Loss and Optimizer
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=config['training']['learning_rate'])
+    print(f"Experiment completed. Results saved in: {experiment_manager.experiment_dir}")
 
-    # Training Loop
-    num_epochs = config['training']['num_epochs']
-    for epoch in range(num_epochs):
-        train_loss = train_epoch(model, train_loader, criterion, optimizer, device)
-        val_loss = evaluate(model, val_loader, criterion, device)
-        print(f'Epoch [{epoch+1}/{num_epochs}], Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}')
-
-    print('Finished Training')
 
 if __name__ == "__main__":
     main()

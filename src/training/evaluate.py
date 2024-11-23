@@ -1,21 +1,24 @@
 import torch
-import torch.nn as nn
 
-def evaluate(model, data_loader, criterion):
+def evaluate(model, config, experiment_manager):
+    # Placeholder evaluation function
+    input_size = config['model']['input_size']
+    output_size = config['model']['output_size']
+    
+    #Dummy data
+    input_tensor = torch.randn(5, 1, input_size) # seq_len, batch_size, input_size
+    
     model.eval()
-    total_loss = 0.0
-    correct_predictions = 0
-    total_samples = 0
     with torch.no_grad():
-        for inputs, labels in data_loader:
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            total_loss += loss.item()
+        output = model(input_tensor)
 
-            _, predicted = torch.max(outputs.data, 1)
-            total_samples += labels.size(0)
-            correct_predictions += (predicted == labels).sum().item()
+        # Create dummy predictions for demonstration
+        predictions = torch.randint(0,output_size, (5,))  #Replace with actual predictions
+         
+        # Log example predictions
+        experiment_manager.log(f'Example Predictions: {predictions}')
 
-    mean_loss = total_loss / len(data_loader)
-    accuracy = correct_predictions / total_samples
-    return mean_loss, accuracy
+        # Assuming some evaluation metric calculation here (replace with actual calculation)
+        accuracy = 0.75 #DUMMY VALUE
+        print(f'Evaluation Accuracy: {accuracy}')
+        experiment_manager.log(f'Evaluation Accuracy: {accuracy}')
