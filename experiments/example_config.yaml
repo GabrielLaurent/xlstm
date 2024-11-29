@@ -1,13 +1,23 @@
-data:
-  train_size: 1000
-  val_size: 200
-  input_size: 10
-  sequence_length: 20
+experiment_name: formal_language_experiment
+
+data_loader:
+  name: formal_language_data_generator # Changed data loader name
+  module: src.data.formal_language_data_generator
+  class: FormalLanguageDataGenerator
+  params:
+    alphabet_size: 3
+    sequence_length: 10
+    grammar: {}
+
 model:
-  hidden_size: 20
-  num_layers: 2
+  name: slstm
+  module: src.lstm.python.slstm
+  class: sLSTM
+  params:
+    input_size: 3  # Same as alphabet size for one-hot encoding
+    hidden_size: 64
+
 training:
-  learning_rate: 0.001
-  num_epochs: 10
+  epochs: 10
   batch_size: 32
-  use_cuda: true
+  learning_rate: 0.001
