@@ -1,1 +1,1 @@
-# Placeholder for CUDA-related code
+# src/lstm/cpp/cuda/__init__.py
