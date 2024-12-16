@@ -1,1 +1,2 @@
-# lstm/blocks/__init__.py
+from .lstm_block import LSTMBlock
+from .mlstm_block import mLSTMBlock
