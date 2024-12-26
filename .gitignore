@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.eggs/
+dist/
+build/
+*.egg-info/
+
+# IDE Settings
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Data
+*.csv
+*.tsv
+*.txt
+
+# Private documents
+private_doc/
+
+# Temporary files
+*~
+
+private_doc/*
+.DS_Store

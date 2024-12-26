@@ -1,0 +1,11 @@
+model:
+  name: LSTM
+  hidden_size: 64
+
+training:
+  learning_rate: 0.001
+  epochs: 10
+
+data:
+  dataset: formal_language
+  num_samples: 1000
